@@ -1,2 +1,8 @@
-# TL-AFE-13C-NMR
-Transfer learning based on atomic feature extraction for the prediction of experimental carbon chemical shifts
+# Transfer Learning based on atomic feature extraction for the prediction of experimental <sup>13</sup>C chemical shifts
+
+## Introduction
+This is the code repository for the preprint: \
+Authors: Žarko Ivković, EMTCCM Master Student at the University of Barcelona
+
+
+## Organization of the code
