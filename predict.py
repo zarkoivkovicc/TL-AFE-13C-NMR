@@ -9,7 +9,7 @@ import io
 
 if __name__ == "__main__":
     parser = ArgumentParser(
-        description="Preprocess data and save encodings or shifts as dictionaries using numpy"
+        description="Predict using ensemble of GNN models"
     )
     parser.add_argument("sdf", type=str, help="SDF file to process")
     parser.add_argument(
