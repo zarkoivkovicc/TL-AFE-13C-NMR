@@ -1,3 +1,5 @@
+# Author: Zarko Ivkovic, University of Barcelona
+# This scripts corrects the atom labels in two CASCADE datasets
 from rdkit.Chem import AllChem as Chem
 import pandas as pd
 

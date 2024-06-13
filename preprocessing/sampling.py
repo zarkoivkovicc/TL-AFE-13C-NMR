@@ -1,3 +1,4 @@
+# Implenentation of samplers for low-data regimes
 import pandas as pd
 import numpy as np
 from numpy.linalg import norm
@@ -21,10 +22,10 @@ class ActiveSampler(object):
             self.sdf[:] = [x for x in self.sdf if x not in ignore]
 
     def save_dataset(self, filename: str):
-        dir = Path("data/AL_sampled/") / Path(filename).parent
+        dir = Path("data/atomic_datasets/") / Path(filename).parent
         dir.mkdir(parents=True, exist_ok=True)
         self.dataset[self.dataset["mol_idx"].isin(self.train_ids)].to_parquet(
-            f"data/AL_sampled/{filename}.parquet"
+            f"data/atomic_datasets/{filename}.parquet"
         )
 
     def distance_hausdorff_encodings(self, i: int, j: int):
@@ -45,23 +46,6 @@ class ActiveSampler(object):
                 directed_hausdorff(encodings_i, encodings_j),
                 directed_hausdorff(encodings_j, encodings_i),
             ]
-        )
-
-    def distance_euclidian_mean_encodings(self, i: int, j: int):
-        encodings_i = np.stack(
-            self.dataset[self.dataset["mol_idx"] == self.id_mapping[i]][
-                "encoding"
-            ].values,
-            axis=1,
-        ).T
-        encodings_j = np.stack(
-            self.dataset[self.dataset["mol_idx"] == self.id_mapping[j]][
-                "encoding"
-            ].values,
-            axis=1,
-        ).T
-        return euclidean(
-            np.average(encodings_i, axis=0), np.average(encodings_j, axis=0)
         )
 
     def sample_morgan_tanimoto(
@@ -112,10 +96,6 @@ class ActiveSampler(object):
             sampler = self.sample_random
         elif based_on == "hausdorff_encodings":
             sampler = self.sample_atomic_encodings(self.distance_hausdorff_encodings)
-        elif based_on == "euclidian_mean_encodings":
-            sampler = self.sample_atomic_encodings(
-                self.distance_euclidian_mean_encodings
-            )
         else:
             raise NotImplementedError(
                 "You can sample based on: 'morgan', 'hausdorff_encodings' or 'random"

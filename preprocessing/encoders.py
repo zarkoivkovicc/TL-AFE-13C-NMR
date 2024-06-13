@@ -1,10 +1,12 @@
+# Atomic feature extraction from pre-trained modlels
+# Author: Zarko Ivkovic, University of Barcelona
 import numpy as np
 import torch
 from unimol_tools import UniMolRepr
 from rdkit.Chem.AllChem import SDMolSupplier, MolToMolBlock
 from rdkit import Chem
 from ase.io import read as readase
-from mace.calculators import MACECalculator
+from mace.calculators import MACECalculator, mace_off
 from abc import ABC, abstractmethod
 from typing import Union
 import pandas as pd
@@ -39,7 +41,7 @@ class UniMolEncoder(Encoder):
         self.encoder = UniMolRepr(data_type="molecule", remove_hs=False)
 
     def encode(self, input: SDMolSupplier | list[str]) -> pd.DataFrame:
-        "Takes list of molecules or smiles strings and returns the encodings."
+        "Takes list of molecules returns the atomic encodings."
         if isinstance(input, str):
             raise NotImplementedError(
                 "SMILES isn't currently unimplemented for UniMol encoder"
@@ -71,8 +73,13 @@ class UniMolEncoder(Encoder):
 class MACEEncoder(Encoder):
     def __init__(self, model_size: str = "large", layer: int = 1):
         super().__init__()
-        self.encoder = MACECalculator(
-            model_paths=f"/home/zarko/mace_off23/MACE-OFF23_{model_size}.model",
+        #        self.encoder = MACECalculator(
+        #            model_paths=f"/home/zarko/mace_off23/MACE-OFF23_{model_size}.model",
+        #            device="cuda" if torch.cuda.is_available() else "cpu",
+        #            default_dtype="float64",
+        #        )
+        self.encoder = mace_off(
+            model=model_size,
             device="cuda" if torch.cuda.is_available() else "cpu",
             default_dtype="float64",
         )
@@ -105,6 +112,10 @@ class MACEEncoder(Encoder):
 
 
 class RDKitEnocder(Encoder):
+    """This class is not used in the paper.
+    It was meant to explore concatenation of rdkit atomic feature with pre-trained embeddings to produce node labels.
+    """
+
     def __init__(self):
         super().__init__()
         self.chirality_encoder = OneHotEncoder(
@@ -171,6 +182,9 @@ class RDKitEnocder(Encoder):
 
 
 class MoltoGraphEncoder(Encoder):
+    """Produce graph representation with pre-trained embeddings as node labels and
+    predefined edge features(not used in this paper)"""
+
     def __init__(self) -> None:
         self.bond_type_encoder = OneHotEncoder(
             sparse_output=False, handle_unknown="ignore", dtype=np.float32

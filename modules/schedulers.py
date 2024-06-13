@@ -1,4 +1,4 @@
-from torch.optim.lr_scheduler import MultiplicativeLR, LambdaLR
+from torch.optim.lr_scheduler import MultiplicativeLR
 
 
 class CustomLR(MultiplicativeLR):

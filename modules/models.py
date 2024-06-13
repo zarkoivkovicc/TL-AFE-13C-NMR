@@ -44,10 +44,11 @@ class FFN(nn.Module):
 class SimpleReadOut(LightningModule):
     """
     layers: list of layer widths (including input and output layers)
-    activation: relu, leakyrelu or elu (default relu)
+    activation: relu, leakyrelu or elu (default elu)
     lr: learning rate (default 1e-3)
-    dropout: dropout rate in the layer before final layer
-    delta: huber loss parameter (default 1.0)
+    dropout: dropout rate in all layers
+    loss: type of loss: mae, mse or huber (default mae)
+    delta: huber loss parameter (default 1.0) *only needed if the loss is huber*
     """
 
     def __init__(
@@ -83,7 +84,6 @@ class SimpleReadOut(LightningModule):
         self.lr_scheduler = lr_scheduler
 
     def training_step(self, batch):
-        # training_step defines the train loop.
         x, y = batch["encoding"], batch["shift"]
         y_hat = self.model(x)
         loss = self.loss(y_hat, y)
@@ -91,7 +91,6 @@ class SimpleReadOut(LightningModule):
         return loss
 
     def validation_step(self, batch):
-        # this is the validation loop
         x, y = batch["encoding"], batch["shift"]
         y_hat = self.model(x)
         valid_loss = F.l1_loss(y_hat, y)
@@ -101,7 +100,6 @@ class SimpleReadOut(LightningModule):
         self.test_results = pd.DataFrame()
 
     def test_step(self, batch):
-        # this is the test loop
         mol_idxs, atom_idxs, x, y = (
             batch["mol_idx"],
             batch["atom_idx"],
@@ -130,20 +128,10 @@ class SimpleReadOut(LightningModule):
     def on_test_end(self):
         self.test_results.to_csv("test.csv")
 
-    def distance_examples_from_train_set(
-        self, examples: pd.DataFrame, train_set: pd.DataFrame
-    ):
-        train_encodings = np.stack(train_set.loc[:, "encoding"].values, axis=1).T
-        examples["distance"] = examples.apply(
-            lambda x: np.min(cdist(x.encoding.reshape(1, -1), train_encodings)), axis=1
-        )
-        return examples.loc[:, ["mol_idx", "atom_idx", "distance"]]
-
     def on_predict_start(self) -> None:
         self.results = pd.DataFrame()
 
     def predict_step(self, batch):
-        # this is the predict loop
         mol_idxs, atom_idxs, x = (
             batch["mol_idx"],
             batch["atom_idx"],
@@ -193,6 +181,20 @@ class SimpleReadOut(LightningModule):
 
 
 class SimpleGNN(LightningModule):
+    """
+    gnn_type: type of message passing layers: gcn, graphSAGE or gat
+    in_channels: dimension of input node features; should be equal to the pre-trained embedding dimension
+    out_channels: dimension of output node features
+    hidden_chennels: dimension of node representation in hidden layers
+    num_hidden_gnn: number of message passing layers
+    layers_readout: list of layer widths (including input and output layers) for readout network
+    activation: relu, leakyrelu or elu (default elu)
+    lr: learning rate (default 1e-3)
+    dropout: dropout rate in all layers
+    loss: type of loss: mae, mse or huber (default mae)
+    delta: huber loss parameter (default 1.0) *only needed if the loss is huber*
+    """
+
     def __init__(
         self,
         gnn_type: str,
@@ -248,7 +250,6 @@ class SimpleGNN(LightningModule):
         return self.readout(self.GNN(x, edge_index))
 
     def training_step(self, batch):
-        # training_step defines the train loop.
         x, edge_index, edge_attr, y, mask = (
             batch.x,
             batch.edge_index,
@@ -262,7 +263,6 @@ class SimpleGNN(LightningModule):
         return loss
 
     def validation_step(self, batch):
-        # this is the validation loop
         x, edge_index, edge_attr, y, mask = (
             batch.x,
             batch.edge_index,
@@ -278,7 +278,6 @@ class SimpleGNN(LightningModule):
         self.test_results = pd.DataFrame()
 
     def test_step(self, batch):
-        # this is the test loop
         x, edge_index, edge_attr, y, mask = (
             batch.x,
             batch.edge_index,
@@ -309,32 +308,13 @@ class SimpleGNN(LightningModule):
         )
 
     def on_test_end(self):
-        """
-        distances = self.distance_examples_from_train_set(
-            self.trainer.datamodule.df_test.loc[:, ["mol_idx", "atom_idx", "encoding"]],
-            self.trainer.datamodule.df_train.loc[
-                :, ["mol_idx", "atom_idx", "encoding"]
-            ],
-        )
-        self.test_results = pd.merge(
-            self.test_results, distances, on=["mol_idx", "atom_idx"], how="left"
-        )"""
         self.test_results.to_csv("test.csv")
-
-    def distance_examples_from_train_set(
-        self, examples: pd.DataFrame, train_set: pd.DataFrame
-    ):
-        train_encodings = np.stack(train_set.loc[:, "encoding"].values, axis=1).T
-        examples["distance"] = examples.apply(
-            lambda x: np.min(cdist(x.encoding.reshape(1, -1), train_encodings)), axis=1
-        )
-        return examples.loc[:, ["mol_idx", "atom_idx", "distance"]]
 
     def on_predict_start(self) -> None:
         self.results = pd.DataFrame()
 
     def predict_step(self, batch):
-        # this is the predict loop
+
         x, edge_index, edge_attr, mask = (
             batch.x,
             batch.edge_index,

@@ -1,3 +1,6 @@
+# Script to sample low-data regimes
+# Warning: We didn't optimize any step here
+# Sampling based on Hausdorff distance takes 24h !!!
 from preprocessing.sampling import ActiveSampler
 import numpy as np
 

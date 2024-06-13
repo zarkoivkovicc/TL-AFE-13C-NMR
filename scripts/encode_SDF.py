@@ -1,9 +1,10 @@
 import numpy as np
 from argparse import ArgumentParser
 from rdkit.Chem import AllChem as Chem
-from encoders import UniMolEncoder, MACEEncoder, RDKitEnocder
+from preprocessing.encoders import UniMolEncoder, MACEEncoder, RDKitEnocder
 import pandas as pd
-from preprocess import parse_shfits
+from preprocessing.preprocess import parse_shfits
+from pathlib import Path
 
 MACE_LABELS = {
     "mace_s": "small",
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     supplier = Chem.SDMolSupplier(
-        f"../raw_data/{args.sdf}.sdf",
+        f"raw_data/{args.sdf}.sdf",
         sanitize=True,
         removeHs=False,
         strictParsing=True,
@@ -84,6 +85,10 @@ if __name__ == "__main__":
     encoder_name = args.encoder
     if args.mace_layers != 1:
         encoder_name = f"{args.encoder}{args.mace_layers}"
-    data.to_parquet(f"../data/{args.sdf}_{encoder_name}.parquet")
+    dir = Path("data/atomic_datasets/")
+    dir.mkdir(parents=True, exist_ok=True)
+    data.to_parquet(f"data/atomic_datasets/{args.sdf}_{encoder_name}.parquet")
     if args.onlyC:
-        data.dropna().to_parquet(f"../data/{args.sdf}_{encoder_name}_C.parquet")
+        data.dropna().to_parquet(
+            f"data/atomic_datasets/{args.sdf}_{encoder_name}_C.parquet"
+        )

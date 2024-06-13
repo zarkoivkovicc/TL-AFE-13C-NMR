@@ -24,7 +24,7 @@ class MolecularShiftsDataset(InMemoryDataset):
         encoding: str,
         sdf: SDMolSupplier,
         name: str = "data",
-        root: str = "/home/zarko/ATML-NMRShiftPrediction/data/graph_datasets/",
+        root: str = "data/graph_datasets/",  # PUT THE DIRECTORY WHERE YOU WANT GRAPH DATASETS
         transform=None,
         pre_transform=None,
     ):
@@ -72,10 +72,12 @@ class MolecularShiftsDatamodule(LightningDataModule):
     """
     train_data: name of parquet file inside data/
     test_data: name of parquet file inside data/
+    sdf_train: sdf file with molecules used to generate train data
     batch size: batch size (default: 1)
     encoding: name of encoding to use
     validation: (bool) split the dataset to validate
-    predict: path to sdf or xyz file for molecule to predict
+    val_ratio: the ratio of validation split
+    predict: path to sdf for molecule(s) to predict
     """
 
     def __init__(
@@ -107,12 +109,12 @@ class MolecularShiftsDatamodule(LightningDataModule):
     def setup(self, stage: str):
         if stage == "fit":
             df_train = pd.read_parquet(
-                f"/home/zarko/ATML-NMRShiftPrediction/data/atomic_datasets/{self.train_data}_{self.encoding}.parquet"
+                f"data/atomic_datasets/{self.train_data}_{self.encoding}.parquet"  # CHANGE THE BEGINNING TO YOUR ATOMIC DATASET DIRECTORY
             )
             if not self.sdf_train:
                 self.sdf_train = self.train_data
             sdf_train = SDMolSupplier(
-                f"/home/zarko/ATML-NMRShiftPrediction/raw_data/{self.sdf_train}.sdf",
+                f"raw_data/{self.sdf_train}.sdf",  # CHANGE THE BEGINNING TO YOUR SDF FILES DIRECTORY
                 True,
                 False,
                 True,
@@ -133,12 +135,12 @@ class MolecularShiftsDatamodule(LightningDataModule):
         if stage == "test":
             if self.test_data == "training":
                 df_train = pd.read_parquet(
-                    f"/home/zarko/ATML-NMRShiftPrediction/data/atomic_datasets/{self.train_data}_{self.encoding}.parquet"
+                    f"data/atomic_datasets/{self.train_data}_{self.encoding}.parquet"  # CHANGE THE BEGINNING TO YOUR ATOMIC DATASET DIRECTORY
                 )
                 if not self.sdf_train:
                     self.sdf_train = self.train_data
                 sdf_train = SDMolSupplier(
-                    f"/home/zarko/ATML-NMRShiftPrediction/raw_data/{self.sdf_train}.sdf",
+                    f"raw_data/{self.sdf_train}.sdf",  # CHANGE THE BEGINNING TO YOUR SDF FILES DIRECTORY
                     True,
                     False,
                     True,
@@ -151,10 +153,13 @@ class MolecularShiftsDatamodule(LightningDataModule):
                 )
             else:
                 df_test = pd.read_parquet(
-                    f"data/atomic_datasets/{self.test_data}_{self.encoding}.parquet"
+                    f"data/atomic_datasets/{self.test_data}_{self.encoding}.parquet"  # CHANGE THE BEGINNING TO YOUR ATOMIC DATASET DIRECTORY
                 )
                 sdf_test = SDMolSupplier(
-                    f"raw_data/{self.test_data}.sdf", True, False, True
+                    f"raw_data/{self.test_data}.sdf",
+                    True,
+                    False,
+                    True,  # CHANGE THE BEGINNING TO YOUR SDF FILES DIRECTORY
                 )
                 self.test_data = MolecularShiftsDataset(
                     df_test,
@@ -256,7 +261,7 @@ class AtomicShiftsDatamodule(LightningDataModule):
 
     def setup(self, stage: str):
         self.df_train = pd.read_parquet(
-            f"data/atomic_datasets/{self.train_data}_{self.encoding}_C.parquet"
+            f"data/atomic_datasets/{self.train_data}_{self.encoding}_C.parquet"  # CHANGE THE BEGINNING TO YOUR ATOMIC DATASET DIRECTORY
         )
         if stage == "fit":
             self.train_data = AtomicShiftsDataset(self.df_train)
@@ -291,12 +296,12 @@ class AtomicShiftsDatamodule(LightningDataModule):
         if stage == "test":
             if self.test_data == "training":
                 self.df_train = pd.read_parquet(
-                    f"data/atomic_datasets/{self.train_data}_{self.encoding}_C.parquet"
+                    f"data/atomic_datasets/{self.train_data}_{self.encoding}_C.parquet"  # CHANGE THE BEGINNING TO YOUR ATOMIC DATASET DIRECTORY
                 )
                 self.test_data = AtomicShiftsDataset(self.df_train)
             else:
                 self.df_test = pd.read_parquet(
-                    f"data/atomic_datasets/{self.test_data}_{self.encoding}_C.parquet"
+                    f"data/atomic_datasets/{self.test_data}_{self.encoding}_C.parquet"  # CHANGE THE BEGINNING TO YOUR ATOMIC DATASET DIRECTORY
                 )
                 self.test_data = AtomicShiftsDataset(self.df_test)
 

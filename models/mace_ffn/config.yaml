@@ -71,7 +71,7 @@ data:
     batch_size: 96
     encoding: mace_l
     validation: false
-    val_split: by_atom
+    val_split: by_molecule
     val_ratio: 0.1
     num_workers: 11
 model:
