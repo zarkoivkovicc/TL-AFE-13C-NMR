@@ -1,0 +1,21 @@
+gnn_type: graphSAGE
+in_channels: 512
+out_channels: 256
+hidden_channels: 1024
+num_hidden_gnn: 5
+layers_readout:
+- 256
+- 756
+- 756
+- 512
+- 512
+- 1
+activation: elu
+dropout: 0.15
+delta: 1.0
+loss: mae
+train_data: '120'
+test_data: NMR_FF_test
+sdf_train: NMR_FF_train
+batch_size: 64
+encoding: unimol
