@@ -1,0 +1,16 @@
+layers:
+- 512
+- 768
+- 768
+- 512
+- 768
+- 1
+activation: elu
+dropout: 0.15
+loss: mae
+delta: 5.0
+train_data: random_42/120
+test_data: NMR_FF_test
+batch_size: 64
+encoding: unimol
+val_split: by_molecule
