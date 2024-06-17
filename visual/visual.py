@@ -21,14 +21,31 @@ rdDepictor.SetPreferCoordGen(True)
 DrawingOptions.dotsPerAngstrom = 100
 
 
-def annotate(data, **kws):
-    r, p = pearsonr(data["predicted_shift"], data["true_shift"])
-    mae = mean_absolute_error(data["predicted_shift"], data["true_shift"])
-    rmse = np.sqrt(mean_squared_error(data["predicted_shift"], data["true_shift"]))
-    ax = plt.gca()
-    ax.text(0.15, 0.8, f"$\\rho$: {r : .4f}", transform=ax.transAxes)
-    ax.text(0.15, 0.75, f"MAE: { mae: .2f} ppm", transform=ax.transAxes)
-    ax.text(0.15, 0.70, f"RMSE: { rmse: .2f} ppm", transform=ax.transAxes)
+def annotate_gen(fontsize):
+    def _annotate(data, **kws):
+        r, p = pearsonr(data["predicted_shift"], data["true_shift"])
+        mae = mean_absolute_error(data["predicted_shift"], data["true_shift"])
+        rmse = np.sqrt(mean_squared_error(data["predicted_shift"], data["true_shift"]))
+        ax = plt.gca()
+        ax.text(
+            0.12, 0.86, f"$\\rho$: {r : .4f}", transform=ax.transAxes, fontsize=fontsize
+        )
+        ax.text(
+            0.12,
+            0.80,
+            f"MAE: { mae: .2f} ppm",
+            transform=ax.transAxes,
+            fontsize=fontsize,
+        )
+        ax.text(
+            0.12,
+            0.74,
+            f"RMSE: { rmse: .2f} ppm",
+            transform=ax.transAxes,
+            fontsize=fontsize,
+        )
+
+    return _annotate
 
 
 class ResultVisualizer(object):
@@ -134,7 +151,7 @@ class ResultVisualizer(object):
                 write_to=file_name,
                 dpi=800,
             )
-        return SVG(d2d.GetDrawingText())
+        return d2d.GetDrawingText()
 
     def visualize_error_dist(
         self,
@@ -156,6 +173,8 @@ class ResultVisualizer(object):
         self,
         file_name: str | None = None,
         size: tuple[int] | None = (8.3 * cm, 8.3 * cm),
+        annotate: bool = True,
+        fontsize: str | float = "medium",
     ):
         plot = sns.lmplot(
             self.results,
@@ -166,7 +185,8 @@ class ResultVisualizer(object):
         )
         plot.set_xlabels("Predicted shift [ppm]")
         plot.set_ylabels("True shift [ppm]")
-        plot.map_dataframe(annotate)
+        if annotate:
+            plot.map_dataframe(annotate_gen(fontsize=fontsize))
         if file_name:
             plot.figure.set_size_inches(*size)
             plot.tight_layout()
