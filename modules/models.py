@@ -340,7 +340,6 @@ class SimpleGNN(LightningModule):
         )
 
     def on_predict_end(self) -> None:
-        print(self.results)
         self.results.to_csv("predict.csv")
         return self.results
 
