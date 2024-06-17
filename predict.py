@@ -5,7 +5,6 @@ import pandas as pd
 from argparse import ArgumentParser
 from preprocessing.preprocess import find_lowest_conformer
 from rdkit.Chem import SDMolSupplier, MolToSmiles
-import io
 
 if __name__ == "__main__":
     parser = ArgumentParser(
@@ -17,10 +16,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     supp = SDMolSupplier(args.sdf, True, False, True)
-    embeded = find_lowest_conformer(supp[0])
-    embeded.SetProp("SMILES", MolToSmiles(embeded))
+    embeded = [find_lowest_conformer(mol) for mol in supp]
+    for mol in embeded:
+        mol.SetProp("SMILES", MolToSmiles(mol))
     print("Succesfully embeded molecules!")
-    mols = [embeded]
     model1 = SimpleGNN.load_from_checkpoint("models/mace_gnn/model.pt")
     model2 = SimpleGNN.load_from_checkpoint("models/unimol_gnn/model.pt")
     data1 = MolecularShiftsDatamodule(
@@ -28,14 +27,14 @@ if __name__ == "__main__":
         test_data="NMR_FF_test",
         batch_size=128,
         encoding="mace_l",
-        predict=mols,
+        predict=embeded,
     )
     data2 = MolecularShiftsDatamodule(
         train_data="NMR_FF_train",
         test_data="NMR_FF_test",
         batch_size=128,
         encoding="unimol",
-        predict=mols,
+        predict=embeded,
     )
     trainer1 = Trainer(devices=1)
     results1 = trainer1.predict(model1, data1)

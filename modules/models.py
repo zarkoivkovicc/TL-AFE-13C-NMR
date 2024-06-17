@@ -321,7 +321,6 @@ class SimpleGNN(LightningModule):
             batch.edge_attr,
             batch.mask,
         )
-
         y_hat = self.forward(x, edge_index, edge_attr)
         self.results = pd.concat(
             [
@@ -341,6 +340,7 @@ class SimpleGNN(LightningModule):
         )
 
     def on_predict_end(self) -> None:
+        print(self.results)
         self.results.to_csv("predict.csv")
         return self.results
 
