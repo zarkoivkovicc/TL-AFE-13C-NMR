@@ -1,3 +1,5 @@
+# Author: Zarko Ivkovic
+# NOTE: This is not optimized, it can be slow for a lot of molecules
 from modules.models import SimpleGNN
 from modules.datamodules import MolecularShiftsDatamodule
 from lightning.pytorch import Trainer
