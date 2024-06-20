@@ -1,5 +1,10 @@
 # Transfer Learning based on atomic feature extraction for the prediction of experimental <sup>13</sup>C chemical shifts
 
+
+[![DOI](https://zenodo.org/badge/813572681.svg)](https://zenodo.org/doi/10.5281/zenodo.12087119)
+
+
+
 ## Introduction
 Source code for the preprint: "Transfer Learning based on atomic feature extraction for the prediction of experimental <sup>13</sup>C chemical shifts"
 Author of the code: Žarko Ivković, EMTCCM Master Student at the University of Barcelona
